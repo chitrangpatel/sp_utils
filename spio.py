@@ -1,24 +1,68 @@
 import numpy as _np
-import fileinput as _fileinput
+import filei_nput as _filei_nput
+
+def get_textfile(txtfile):
+    """ Read in the groups.txt file.
+    Contains information about the DM, time, box car width, signal to noise, sample number and rank    of groups. 
+    """
+    return  _np.loadtxt(txtfile,dtype = 'str',delimiter='\n')
+
+def group_info(rank, txtfile):
+    """
+    Extracts out relevant information from the groups.txt file as strings. 
+    """
+    files = get_textfile(txtfile)
+    lis=_np.where(files == '\tRank:             %i.000000'%rank)[0]#Checks for this contidion and gives its indices where true.
+    # Extract the Max_ sigma value for the required parameters
+    parameters=[]
+    for i in range(len(lis)):
+        temp_list = files[lis[i]-1].split()
+        max_sigma = temp_list[2]
+        max_sigma = float(max_sigma)
+        max_sigma = '%.2f'%max_sigma
+        # Extract the number of pulses for this group
+        temp_list = files[lis[i]-6].split()
+        number_of_pulses = int(temp_list[2])
+        # Slice off a mini array to get the parameters from
+        temp_lines = files[(lis[i]+1):(lis[i]+number_of_pulses+1)]
+        # Get the parameters as strings containing the max_sigma
+        parameters.append(temp_lines[_np.array([max_sigma in line for line in temp_lines])])
+    return parameters
+
+def split_parameters(rank, txtfile):
+    """
+    Splits the string into individual parameters and converts them into floats/int. 
+    """
+    parameters = group_info(rank, txtfile)
+    final_parameters=[]
+    for i in range(len(parameters)):
+    # If there is a degeneracy in max_sigma values, Picks the first one.(Can be updated to get the best pick) 
+        correct_values = parameters[i][0].split()
+        correct_values[0] = float(correct_values[0])
+        correct_values[1] = float(correct_values[1])
+        correct_values[1] = float('%.2f'%correct_values[1])
+        correct_values[2] = float(correct_values[2])
+        correct_values[3] = int(correct_values[3])
+        correct_values[4] = int(correct_values[4])
+        final_parameters.append(correct_values)
+    return final_parameters
 
 def read_sp_files(files):
     """Read all *.singlepulse files in the current directory in a DM range.
         Return 5 arrays (properties of all single pulses):
                 DM, sigma, time, sample, downfact."""
-    finput = _fileinput.input(files)
-    data = _np.loadtxt(finput,
+    fi_nput = _filei_nput.i_nput(files)
+    data = _np.loadtxt(fi_nput,
                        dtype=_np.dtype([('dm', 'float32'),
                                         ('sigma','float32'),
-                                        ('time','float32'),
-                                        ('sample','uint32'),
-                                        ('downfact','uint8')]))
+                                        ('time','float32')]))
     return _np.atleast_2d(data)
 
 def read_tarfile(filenames, names, tar):
     """Read in the .singlepulse.tgz file instead of individual .singlepulse files.
         Return an array of (properties of all single pulses):
               DM, sigma, time, sample, downfact. 
-        Input: filenames: names of all the singlepulse files.
+        I_nput: filenames: names of all the singlepulse files.
                names: subset of filenames. Names of the singlepulse files to be 
                plotted in DM vs time.
                tar: tar file (.singlepulse.tgz)."""  
@@ -49,10 +93,11 @@ def read_tarfile(filenames, names, tar):
     main_array[3] = main_array[3].astype(_np.int)
     main_array[4] = main_array[4].astype(_np.int)
     return main_array
+
 def gen_arrays(dm, threshold, sp_files, tar):    
     """
     Extract dms, times and signal to noise from each singlepulse file as 1D arrays.
-    Input: 
+    I_nput: 
            dm: The dm array of the main pulse. Used to decide the DM range in the DM vs time plot and pick out singlepulse files with those DMs.
            threshold: Min signal to noise of the single pulse event that is plotted.
            sp_files: all the .singlepulse file names.
@@ -152,7 +197,7 @@ def gen_arrays(dm, threshold, sp_files, tar):
 def read_spd(spd_file, tar = None):
     """ 
        Reads in all the .spd and the .singlepulse.tgz info that can reproduce the sp plots.
-       Inputs: spd_file: .spd file
+       I_nputs: spd_file: .spd file
                .singlepulse.tgz: if not supplied, it will only output .spd info. 
                                  Default: not supplied. 
        Output: An object that has all the relevant information to remake the plot. 
