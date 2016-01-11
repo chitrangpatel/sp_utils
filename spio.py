@@ -1,5 +1,5 @@
 import numpy as _np
-import filei_nput as _filei_nput
+import fileinput as _fileinput
 
 def get_textfile(txtfile):
     """ Read in the groups.txt file.
@@ -51,8 +51,8 @@ def read_sp_files(files):
     """Read all *.singlepulse files in the current directory in a DM range.
         Return 5 arrays (properties of all single pulses):
                 DM, sigma, time, sample, downfact."""
-    fi_nput = _filei_nput.i_nput(files)
-    data = _np.loadtxt(fi_nput,
+    finput = _fileinput.input(files)
+    data = _np.loadtxt(finput,
                        dtype=_np.dtype([('dm', 'float32'),
                                         ('sigma','float32'),
                                         ('time','float32')]))
@@ -62,7 +62,7 @@ def read_tarfile(filenames, names, tar):
     """Read in the .singlepulse.tgz file instead of individual .singlepulse files.
         Return an array of (properties of all single pulses):
               DM, sigma, time, sample, downfact. 
-        I_nput: filenames: names of all the singlepulse files.
+        Input: filenames: names of all the singlepulse files.
                names: subset of filenames. Names of the singlepulse files to be 
                plotted in DM vs time.
                tar: tar file (.singlepulse.tgz)."""  
@@ -97,7 +97,7 @@ def read_tarfile(filenames, names, tar):
 def gen_arrays(dm, threshold, sp_files, tar):    
     """
     Extract dms, times and signal to noise from each singlepulse file as 1D arrays.
-    I_nput: 
+    Input: 
            dm: The dm array of the main pulse. Used to decide the DM range in the DM vs time plot and pick out singlepulse files with those DMs.
            threshold: Min signal to noise of the single pulse event that is plotted.
            sp_files: all the .singlepulse file names.
@@ -197,7 +197,7 @@ def gen_arrays(dm, threshold, sp_files, tar):
 def read_spd(spd_file, tar = None):
     """ 
        Reads in all the .spd and the .singlepulse.tgz info that can reproduce the sp plots.
-       I_nputs: spd_file: .spd file
+       Inputs: spd_file: .spd file
                .singlepulse.tgz: if not supplied, it will only output .spd info. 
                                  Default: not supplied. 
        Output: An object that has all the relevant information to remake the plot. 
