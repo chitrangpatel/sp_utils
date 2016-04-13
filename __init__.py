@@ -99,6 +99,7 @@ class spd:
         self.dmVt_this_dms = dd['dm_arr']
         self.dmVt_this_times = _np.array(dd['time_list'])
         self.dmVt_this_sigmas = dd['sigma_arr']
+        self.dmVt_this_widths = dd['width_arr']
 
         self.dmsweep_delays = dd['delays_nozerodm']
         self.dmsweep_freqs = dd['freqs_nozerodm']
