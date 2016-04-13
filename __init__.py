@@ -26,6 +26,8 @@ class spd:
         Time values for this pulse in the DM-vs-time scatterplot
      dmVt_this_sigmas
         Sigma values (determining point size) for this pulse in the DM-vs-time scatterplot
+     dmVt_this_widths
+        box car values for this pulse.
 
 
      dmsweep_delays
