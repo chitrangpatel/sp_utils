@@ -94,7 +94,7 @@ def read_tarfile(filenames, names, tar):
     main_array[4] = main_array[4].astype(_np.int)
     return main_array
 
-def gen_arrays(dm, threshold, sp_files, tar):    
+def gen_arrays(dm, sp_files, tar, threshold):    
     """
     Extract dms, times and signal to noise from each singlepulse file as 1D arrays.
     Input: 
@@ -204,7 +204,7 @@ def read_spd(spd_file, tar = None):
     """
     sp = spd(spd_file)
     if tar is not None:
-        dmVt_dms, dmVt_times, dmVt_sigmas, dmVt_files = gen_arrays(sp.dmVt_this_dms, threshold = 5, sp.spfiles, tar)
+        dmVt_dms, dmVt_times, dmVt_sigmas, dmVt_files = gen_arrays(sp.dmVt_this_dms, sp.spfiles, tar, threshold=5)
         sp.dmVt_dms = dmVt_dms
         sp.dmVt_times = dmVt_times
         sp.dmVt_sigmas = dmVt_sigmas
