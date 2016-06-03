@@ -121,12 +121,10 @@ def gen_arrays(dm, sp_files, tar, threshold):
     timess = _np.zeros((1,)).astype('float32')
     sigmass = _np.zeros((1,)).astype('float32')
     ind = []
-    dm_time_files = []
     name_DMs = np.asarray(map(lambda x:pick_DM_for_singlepulse_files(sp_files[x]), range(len(sp_files))))
     loidx = np.argmin(np.abs(name_DMs-ddm))
     hiidx = np.argmin(np.ads(name_DMs-(max_DM+diff_DM)))
     singlepulsefiles = sp_files[loidx:hiidx]
-    dm_time_files = singlepulsefiles
     
     if tar is not None:
         data = read_tarfile(sp_files, singlepulsefiles, tar)
@@ -142,7 +140,7 @@ def gen_arrays(dm, sp_files, tar, threshold):
     dms = _np.delete(dms, (0), axis = 0)
     times = _np.delete(times, (0), axis = 0)
     sigmas = _np.delete(sigmas, (0), axis = 0)
-    return dms, times, sigmas, dm_time_files
+    return dms, times, sigmas, singlepulsefiles
 
 def read_spd(spd_file, tar = None):
     """ 
