@@ -117,9 +117,9 @@ def gen_arrays(dm, sp_files, tar, threshold):
     ddm = min_dm-diff_dm
     if (ddm <= 0):
         ddm = 0
-    name_DMs = np.asarray(map(lambda x:pick_DM_for_singlepulse_files(sp_files[x]), range(len(sp_files))))
-    loidx = np.argmin(np.abs(name_DMs-ddm))
-    hiidx = np.argmin(np.ads(name_DMs-(max_DM+diff_DM)))
+    name_DMs = _np.asarray(map(lambda x:pick_DM_for_singlepulse_files(sp_files[x]), range(len(sp_files))))
+    loidx = _np.argmin(_np.abs(name_DMs-ddm))
+    hiidx = _np.argmin(_np.ads(name_DMs-(max_DM+diff_DM)))
     singlepulsefiles = sp_files[loidx:hiidx]
     
     if tar is not None:
