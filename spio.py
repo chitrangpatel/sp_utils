@@ -94,6 +94,9 @@ def read_tarfile(filenames, names, tar):
     main_array[4] = main_array[4].astype(_np.int)
     return main_array
 
+def pick_DM_for_singlepulse_files(filenm):
+    return float(filenm[filenm.find('DM')+2:filenm.find('.singlepulse')])
+
 def gen_arrays(dm, sp_files, tar, threshold):    
     """
     Extract dms, times and signal to noise from each singlepulse file as 1D arrays.
@@ -119,76 +122,23 @@ def gen_arrays(dm, sp_files, tar, threshold):
     sigmass = _np.zeros((1,)).astype('float32')
     ind = []
     dm_time_files = []
-    for i in range(ddm,(max_dm+diff_dm)):
-        """after DM of 1826 the dm step size is >=1, therefore we need to pick the correct DMs."""
-        if (i >= 1826) and (i < 3266):
-            if int(i)%2 == 1:
-                i = i+1
-            try:
-                singlepulsefiles = [sp_files[sp_file] for sp_file in range(len(sp_files)) if ('DM'+str(i)+'.') in sp_files[sp_file]]
-                dm_time_files += singlepulsefiles
-                if tar is not None:
-                    data = read_tarfile(sp_files, singlepulsefiles, tar)
-                else:
-                    data = read_sp_files(singlepulsefiles)[0]
-            except:
-                pass
-        elif (i >= 3266) and (i < 5546):
-            if int(i)%3 == 0:
-                i = i+2
-            if int(i)%3 == 1:
-                i = i+1
-            try:
-                singlepulsefiles = [sp_files[sp_file] for sp_file in range(len(sp_files)) if ('DM'+str(i)+'.') in sp_files[sp_file]]
-                dm_time_files += singlepulsefiles
-                if tar is not None:
-                    data = read_tarfile(sp_files, singlepulsefiles, tar)
-                else:
-                    data = read_sp_files(singlepulsefiles)[0]
-            except:
-                pass
-        elif i>=5546:
-            if int(i)%5 == 2:
-                i = i+4
-            if int(i)%5 == 3:
-                i = i+3
-            if int(i)%5 == 4:
-                i = i+2
-            if int(i)%5 == 0:
-                i = i+1
-            try:
-                singlepulsefiles = [sp_files[sp_file] for sp_file in range(len(sp_files)) if ('DM'+str(i)+'.') in sp_files[sp_file]]
-                dm_time_files += singlepulsefiles
-                if tar is not None:
-                    data = read_tarfile(sp_files, singlepulsefiles, tar)
-                else:
-                    data = read_sp_files(singlepulsefiles)[0]
-            except:
-                pass
-        else:    
-            try:
-                singlepulsefiles = [sp_files[sp_file] for sp_file in range(len(sp_files)) if ('DM'+str(i)+'.') in sp_files[sp_file]]
-                dm_time_files += singlepulsefiles
-                if tar is not None:
-                    data = read_tarfile(sp_files, singlepulsefiles, tar)
-                else:
-                    data = read_sp_files(singlepulsefiles)[0]
-            except:
-                pass
-        if tar is not None:
-            dms = _np.reshape(data[0],(len(data[0]),))
-            times = _np.reshape(data[2],(len(data[1]),))
-            sigmas = _np.reshape(data[1],(len(data[2]),))
-        else:
-            dms = data['dm']
-            times = data['time']
-            sigmas = data['sigma']
-        dms = _np.concatenate((dmss, dms), axis = 0)
-        dmss = dms
-        times = _np.concatenate((timess, times), axis = 0)
-        timess = times
-        sigmas = _np.concatenate((sigmass, sigmas), axis = 0)
-        sigmass = sigmas
+    name_DMs = np.asarray(map(lambda x:pick_DM_for_singlepulse_files(sp_files[x]), range(len(sp_files))))
+    loidx = np.argmin(np.abs(name_DMs-ddm))
+    hiidx = np.argmin(np.ads(name_DMs-(max_DM+diff_DM)))
+    singlepulsefiles = sp_files[loidx:hiidx]
+    dm_time_files = singlepulsefiles
+    
+    if tar is not None:
+        data = read_tarfile(sp_files, singlepulsefiles, tar)
+        dms = _np.reshape(data[0],(len(data[0]),))
+        times = _np.reshape(data[2],(len(data[1]),))
+        sigmas = _np.reshape(data[1],(len(data[2]),))
+    else:
+        data = read_sp_files(singlepulsefiles)[0]
+        dms = data['dm']
+        times = data['time']
+        sigmas = data['sigma']
+
     dms = _np.delete(dms, (0), axis = 0)
     times = _np.delete(times, (0), axis = 0)
     sigmas = _np.delete(sigmas, (0), axis = 0)
