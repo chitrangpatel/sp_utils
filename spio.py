@@ -115,12 +115,17 @@ def gen_arrays(dm, sp_files, tar, threshold):
     min_dm = _np.min(dm).astype('int')
     diff_dm = max_dm-min_dm
     ddm = min_dm-diff_dm
+    hidm = max_dm+diff_dm
     if (ddm <= 0):
         ddm = 0
     name_DMs = _np.asarray(map(lambda x:pick_DM_for_singlepulse_files(sp_files[x]), range(len(sp_files))))
+    inds = name_DMs.argsort()
+    name_DMs = name_DMs[inds]
+    sp_files = _np.asarray(sp_files)[inds]
     loidx = _np.argmin(_np.abs(name_DMs-ddm))
-    hiidx = _np.argmin(_np.ads(name_DMs-(max_DM+diff_DM)))
-    singlepulsefiles = sp_files[loidx:hiidx]
+    hiidx = _np.argmin(_np.abs(name_DMs-hidm))
+    print loidx, hiidx
+    singlepulsefiles = list(sp_files[loidx:hiidx])
     
     if tar is not None:
         data = read_tarfile(sp_files, singlepulsefiles, tar)
