@@ -1,5 +1,5 @@
 import sp_utils.spio
-import bary_and_topo
+import sp_utils.bary_and_topo
 
 import numpy as _np
 from scipy.special import erf as _erf
