@@ -47,6 +47,46 @@ def split_parameters(rank, txtfile):
         final_parameters.append(correct_values)
     return final_parameters
 
+def read_RRATrap_info(groupfile, group_to_read, rank):
+    """
+    Generates DM, time, signal-to-noise and pulse width arrays for all the single pulse events
+    that belong to this group.
+    Inputs:
+        groups.txt file.
+        list of line numbers in the file that read something like : Rank:             6.000000
+        rank of the group according to the RRATrap classification.
+    Outputs:
+        dm_list, dm_arr : DMs of the single pulse events in this group
+        time_list : Times of the single pulse events in this group 
+        sigma_arr : signal-to-noise of the single pulse events in this group 
+        width_arr : box car widths of the single pulse events in this group 
+    """
+    files = get_textfile(groupfile)
+    if files[rank-1] != "Number of rank %i groups: 0 "%rank: # checks whether there are %i \
+                                                             # ranked groups in the file.
+        print files[rank-1]
+        print "Making arrays for DM vs Signal to Noise..."
+        temp_list = files[group_to_read-6].split()
+        npulses = int(temp_list[2])
+        temp_lines = files[(group_to_read+3):(group_to_read+npulses+1)]
+        arr = _np.split(temp_lines, len(temp_lines))
+        dm_list = []
+        time_list = []
+        for i in range(len(arr)):
+            dm_val= float(arr[i][0].split()[0])
+            time_val = float(arr[i][0].split()[2])
+            dm_list.append(dm_val)
+            time_list.append(time_val)
+        arr_2 = _np.array([arr[i][0].split() for i in range(len(arr))], dtype = _np.float32)
+        dm_arr = _np.array([arr_2[i][0] for i in range(len(arr))], dtype = _np.float32)
+        sigma_arr = _np.array([arr_2[i][1] for i in range(len(arr))], dtype = _np.float32)
+        width_arr = _np.array([arr_2[i][4] for i in range(len(arr))], dtype = _np.int8)
+    else:
+        print "No Rank %i groups for this candidate."%rank
+    
+    return dm_list, time_list, dm_arr, sigma_arr, width_arr
+
+
 def read_sp_files(files):
     """Read all *.singlepulse files in the current directory in a DM range.
         Return 5 arrays (properties of all single pulses):
@@ -55,7 +95,9 @@ def read_sp_files(files):
     data = _np.loadtxt(finput,
                        dtype=_np.dtype([('dm', 'float32'),
                                         ('sigma','float32'),
-                                        ('time','float32')]))
+                                        ('time','float32'),
+                                        ('sample','uint32'),
+                                        ('downfact','uint8')]))
     return _np.atleast_2d(data)
 
 def read_tarfile(filenames, names, tar):
@@ -126,22 +168,25 @@ def gen_arrays(dm, sp_files, tar, threshold):
     hiidx = _np.argmin(_np.abs(name_DMs-hidm))
     print loidx, hiidx
     singlepulsefiles = list(sp_files[loidx:hiidx])
-    
+
     if tar is not None:
         data = read_tarfile(sp_files, singlepulsefiles, tar)
         dms = _np.reshape(data[0],(len(data[0]),))
         times = _np.reshape(data[2],(len(data[1]),))
         sigmas = _np.reshape(data[1],(len(data[2]),))
+        widths = _np.reshape(data[4],(len(data[4]),))
     else:
         data = read_sp_files(singlepulsefiles)[0]
         dms = data['dm']
         times = data['time']
         sigmas = data['sigma']
-
+        widths = data['downfact']
+    
     dms = _np.delete(dms, (0), axis = 0)
     times = _np.delete(times, (0), axis = 0)
     sigmas = _np.delete(sigmas, (0), axis = 0)
-    return dms, times, sigmas, singlepulsefiles
+    widths = _np.delete(widths, (0), axis = 0)
+    return dms, times, sigmas, widths, singlepulsefiles
 
 def read_spd(spd_file, tar = None):
     """ 
@@ -153,10 +198,11 @@ def read_spd(spd_file, tar = None):
     """
     sp = spd(spd_file)
     if tar is not None:
-        dmVt_dms, dmVt_times, dmVt_sigmas, dmVt_files = gen_arrays(sp.dmVt_this_dms, sp.spfiles, tar, threshold=5)
+        dmVt_dms, dmVt_times, dmVt_sigmas, dmVt_widths, dmVt_files = gen_arrays(sp.dmVt_this_dms, sp.spfiles, tar, threshold=5)
         sp.dmVt_dms = dmVt_dms
         sp.dmVt_times = dmVt_times
         sp.dmVt_sigmas = dmVt_sigmas
+        sp.dmVt_widths = dmVt_widths
         return sp
     else:
         return sp 
